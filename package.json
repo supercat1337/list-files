@@ -1,0 +1,34 @@
+{
+    "name": "list-files",
+    "version": "1.0.0",
+    "description": "CLI tool to recursively list files in a directory with glob exclusions, relative/absolute paths, and optional file output",
+    "type": "module",
+    "bin": {
+        "list-files": "src/index.js"
+    },
+    "files": [
+        "src"
+    ],
+    "keywords": [
+        "list-files",
+        "file-listing",
+        "glob",
+        "cli"
+    ],
+    "scripts": {
+        "start": "node src/index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/supercat1337/list-files.git"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "author": "Albert Bazaleev",
+    "license": "MIT",
+    "dependencies": {
+        "fast-glob": "^3.3.3",
+        "minimist": "^1.2.8"
+    }
+}
