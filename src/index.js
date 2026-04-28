@@ -22,25 +22,29 @@ Arguments:
   directory               Target directory to scan (default: current directory)
 
 Options:
-  -a, --absolute          Print absolute file paths
+  -i, --include <pattern> Include files/directories matching a glob pattern (can be repeated, default: "**/*")
   -e, --exclude <pattern> Exclude files/directories matching a glob pattern (can be repeated)
+  -a, --absolute          Print absolute file paths
   -o, --output <file>     Write output to a file instead of stdout
   -h, --help              Show this help message
 
 Glob pattern examples:
-  "*.tmp"                 All .tmp files in the root of the scanned directory
+  "*.js"                  All .js files in the root of the scanned directory
   "**/*.test.js"          All .test.js files in any subdirectory
+  "src/**/*.ts"           All .ts files inside src/
   "node_modules/**"       Exclude the entire node_modules folder
   "**/temp/*"             All files inside any 'temp' folder
 
 Examples:
   list-files
   list-files ./src
-  list-files --exclude "**/*.log"
+  list-files --include "*.js"
+  list-files -i "src/**/*.ts" -i "lib/**/*.ts"
+  list-files -e "**/*.log"
   list-files -e "node_modules/**" -e "dist/**" --absolute
-  list-files /home/user/project -e "*.tmp" -a
+  list-files /home/user/project -i "**/*.js" -e "*.test.js"
   list-files -o files.txt
-  list-files ./src -e "*.test.js" -o output.txt
+  list-files ./src -i "*.js" -e "*.test.js" -o output.txt
 `);
 }
 
@@ -77,11 +81,13 @@ async function main() {
         boolean: ['absolute', 'help', 'a', 'h'],
         alias: {
             a: 'absolute',
+            i: 'include',
             e: 'exclude',
             h: 'help',
             o: 'output',
         },
         default: {
+            include: [],
             exclude: [],
         },
     });
@@ -115,6 +121,18 @@ async function main() {
         process.exit(1);
     }
 
+    // Normalise include patterns
+    let includePatterns = argv.include;
+    if (!Array.isArray(includePatterns)) {
+        includePatterns = [includePatterns];
+    }
+    includePatterns = includePatterns.filter(
+        (/** @type {string} */ pattern) => pattern && typeof pattern === 'string'
+    );
+    if (includePatterns.length === 0) {
+        includePatterns = ['**/*'];
+    }
+
     // Normalise exclude patterns
     let excludePatterns = argv.exclude;
     if (!Array.isArray(excludePatterns)) {
@@ -125,7 +143,7 @@ async function main() {
     );
 
     try {
-        const relativeFilePaths = await fg('**/*', {
+        const relativeFilePaths = await fg(includePatterns, {
             cwd: dirAbsolute,
             ignore: excludePatterns,
             onlyFiles: true,

@@ -1,7 +1,7 @@
 {
     "name": "list-files",
-    "version": "1.0.0",
-    "description": "CLI tool to recursively list files in a directory with glob exclusions, relative/absolute paths, and optional file output",
+    "version": "1.1.0",
+    "description": "CLI tool to recursively list files in a directory with glob includes/excludes, relative/absolute paths, and optional file output",
     "type": "module",
     "bin": {
         "list-files": "src/index.js"

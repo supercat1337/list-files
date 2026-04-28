@@ -1,12 +1,13 @@
 # list-files
 
 CLI tool to recursively list all files in a directory.  
-Supports glob‑based exclusion patterns, relative/absolute paths, and is powered by `fast-glob`.
+Supports glob‑based include/exclusion patterns, relative/absolute paths, and is powered by `fast-glob`.
 
 ## Features
 
 - Recursively scan any directory (default: current directory)
-- Exclude files/folders using glob patterns (`--exclude`, can be repeated)
+- **Include** only files matching glob patterns (`--include`, can be repeated, default: `**/*`)
+- **Exclude** files/folders using glob patterns (`--exclude`, can be repeated)
 - Output relative paths (to current working directory) or absolute paths (`--absolute`)
 - Cross‑platform (POSIX paths with `/`)
 - Includes hidden files (dotfiles) by default
@@ -51,14 +52,16 @@ If no `directory` is given, the current working directory is scanned.
 
 ### Options
 
-| Option                | Alias | Description                                       |
-| --------------------- | ----- | ------------------------------------------------- |
-| `--absolute`          | `-a`  | Print absolute file paths                         |
-| `--exclude <pattern>` | `-e`  | Exclude files/directories matching a glob pattern |
-| `--output <file>`     | `-o`  | Write output to a file instead of stdout          |
-| `--help`              | `-h`  | Show help screen                                  |
+| Option                | Alias | Description                                                                          |
+| --------------------- | ----- | ------------------------------------------------------------------------------------ |
+| `--include <pattern>` | `-i`  | Include files/directories matching a glob pattern (can be repeated, default: `**/*`) |
+| `--exclude <pattern>` | `-e`  | Exclude files/directories matching a glob pattern (can be repeated)                  |
+| `--absolute`          | `-a`  | Print absolute file paths                                                            |
+| `--output <file>`     | `-o`  | Write output to a file instead of stdout                                             |
+| `--help`              | `-h`  | Show help screen                                                                     |
 
-- The `--exclude` / `-e` flag can be used **multiple times** to add several exclude patterns.
+- The `--include` / `-i` flag can be used **multiple times** to add several include patterns. The final set of files is the union of all matching patterns.
+- The `--exclude` / `-e` flag can be used **multiple times** to add several exclude patterns. Excludes are applied after includes.
 - Patterns follow [fast-glob syntax](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 
 ## Examples
@@ -83,6 +86,18 @@ package.json
 list-files ./lib
 ```
 
+### Include only specific file types
+
+```bash
+list-files --include "*.js"
+```
+
+Multiple include patterns:
+
+```bash
+list-files -i "src/**/*.ts" -i "lib/**/*.ts"
+```
+
 ### Exclude patterns
 
 ```bash
@@ -95,11 +110,17 @@ Multiple excludes:
 list-files -e "node_modules/**" -e "dist/**" -e "*.log"
 ```
 
-Write output to a file:
+### Combine include and exclude
+
+```bash
+list-files -i "**/*.js" -e "**/*.test.js"
+```
+
+### Write output to a file
 
 ```bash
 list-files -o files.txt
-list-files ./src -e "*.test.js" -o output.txt
+list-files ./src -i "*.js" -o output.txt
 ```
 
 ### Absolute paths
@@ -111,7 +132,7 @@ list-files --absolute
 ### Combine all options
 
 ```bash
-list-files ./project -e "temp/**" -e "*.tmp" --absolute
+list-files ./project -i "**/*.js" -e "temp/**" -e "*.tmp" --absolute
 ```
 
 ### Use with `xargs` or `grep`
@@ -124,7 +145,7 @@ list-files --absolute | xargs cat
 ## How it works
 
 1. Resolves the target directory (or uses `.`).
-2. Uses `fast-glob` with pattern `**/*` to list all files recursively.
+2. Uses `fast-glob` with the provided include patterns (default `**/*`) to list matching files.
 3. Applies `--exclude` patterns to the `ignore` option.
 4. Outputs each path:
     - Relative to `process.cwd()` by default
